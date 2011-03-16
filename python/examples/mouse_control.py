@@ -34,7 +34,9 @@ def main(debug=False):
 	curX, curY = width/2, height/2
 	while True:
 		updated = False
-		for packet in emotiv.dequeue():
+		for packet in headset:
+                        print 'received', packet.gyroX, packet.gyroY
+                        
 			updated = True
 			if abs(packet.gyroX) > 1:
 				curX -= packet.gyroX - 1
@@ -47,21 +49,18 @@ def main(debug=False):
 			screen.move_mouse(curX, curY)
 		time.sleep(1.0/60)
 
-
-emotiv = None
+headset = None
 
 try:
-	logger = logging.getLogger('emotiv')
-	logger.setLevel(logging.INFO)
-	log_handler = logging.StreamHandler()
-	logger.addHandler(log_handler)
+    logger = logging.getLogger('emotiv')
+    logger.setLevel(logging.INFO)
+    log_handler = logging.StreamHandler()
+    logger.addHandler(log_handler)
 
-	emotiv = Emotiv()
-
-	
-	main(*sys.argv[1:])
+    headset = Emotiv()
+    main(*sys.argv[1:])
 
 finally:
-	if emotiv:
-		emotiv.close()
+    pass
+
 

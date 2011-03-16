@@ -1,2 +1,4 @@
 *build*
 *.pyc
+*dist*
+*emotiv.egg-info*

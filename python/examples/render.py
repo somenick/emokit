@@ -70,7 +70,7 @@ def main(debug=False):
 				return
 		
 		updated = False
-		for packet in emotiv.dequeue():
+		for packet in emotiv:
 			updated = True
 			if abs(packet.gyroX) > 1:
 				curX -= packet.gyroX - 1
@@ -102,7 +102,6 @@ try:
 	hgheight = gheight >> 1
 	
 	main(*sys.argv[1:])
-
 finally:
-	if emotiv:
-		emotiv.close()
+        pass
+
