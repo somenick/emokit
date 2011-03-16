@@ -64,9 +64,9 @@ Python library
 Tips for aspiring neurohackers
 ==========================
 
-1) Label each sensor on your headset! If some reading is acting crazy, you'll know which one it is right away. 
+1) Label each sensor on your headset! If some sensor is acting crazy, you'll know which one it is right away. 
 
-2) The samples/ folder contains recorded segments of the headset's
+2) The <code>samples/</code> folder contains recorded segments of the headset's
   output, so you can develop and test applications that make use of
   the raw EEG without actually wearing (or owning) the headset. You
   can use the data like this:
