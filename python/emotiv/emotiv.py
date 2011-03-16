@@ -153,10 +153,11 @@ class Emotiv(object):
                         self.device.open()
                         
                         def handle(data):
-                                assert data[0] == 0
-                                self.gotData(''.join(map(chr, data[1:])))
+                                data = ''.join(map(chr, data[1:])))
+                                decrypted = self.rijn.decrypt(data[:16]) + self.rijn.decrypt(data[16:])
+                                self._packets.put(decrypted)
 
-                                self.device.set_raw_data_handler(handle)
+                        self.device.set_raw_data_handler(handle)
 
                 except IndexError:
                         raise DeviceNotFound, "Device was not found."
@@ -203,4 +204,6 @@ class Emotiv(object):
 
         def __del__(self):
                 self.close()
+
+
 
