@@ -1,3 +1,4 @@
+import itertools
 try:
 	import pywinusb.hid as hid
 	windows = True
@@ -77,7 +78,20 @@ def timeout(seconds):
         signal.signal(signal.SIGALRM, original_handler)
 
 class EmotivPacket(object):
-        def __init__(self, data):
+        def __init__(self, data = None, data_as_dict = None):
+                if not data and not data_as_dict:
+                        raise Exception, "Cannot create packet."
+
+                if data_as_dict:
+                        self.counter = data_as_dict['counter']
+                        self.gyroX = data_as_dict['gyroX']
+                        self.gyroY = data_as_dict['gyroY']
+
+                        for sensor in sensorlist:
+                                setattr(self, sensor, (data_as_dict[sensor], 4))
+
+                        return
+
                 self.counter = ord(data[0])
 		self.sync = self.counter == 0xe9
 		self.gyroX = ord(data[29]) - 102
@@ -100,7 +114,35 @@ class EmotivPacket(object):
 			)
 
 class Emotiv(object):
-        def __init__(self, on_demand = True, rate = 128):
+        def __init__(self, on_demand = True, rate = 128, simulation = ''):
+                self._simulation = True if simulation else False
+
+                if self._simulation:
+
+                        with open(simulation) as f:
+                                lines = f.readlines()
+                                
+                        def line_has_reading(x):
+                                return len(x) > 0 and x[0] != '#' and len(x.split(' ')) == 18
+
+                        relevant_lines = filter(line_has_reading, lines)
+                        assert len(relevant_lines) > 0
+
+                        labels = ['counter', 'gyroX', 'gyroY'] + sensorlist
+
+                        self.simulation_data = []
+                        for line in relevant_lines:
+                                packet_dict = dict(zip(labels, map(int, line.split(' ')[:-1])))
+                                packet = EmotivPacket(data_as_dict = packet_dict)
+                                self.simulation_data.append(packet)
+
+                        self.collect = self.simulation_data.pop
+
+                else:
+                        self.setup_win() if windows else self.setup_posix()
+                        self.detect_key()
+                        self.collect = self.read_posix
+                        
                 self._packets = multiprocessing.Queue()
 		
                 if 0 < rate <= MAX_RATE:
@@ -108,24 +150,20 @@ class Emotiv(object):
                 else:
                         raise Exception, "Maximum sampling rate is %i Hz." % (MAX_RATE)
 
-                self.setup_win() if windows else self.setup_posix()
-
-                self.detect_key()
-
                 self._on_demand = on_demand
 
                 if not self._on_demand:
                         def process():
                                 while True:
-                                        packet = self.read_posix()
+                                        packet = self.collect()
                                         self._packets.put(packet)
                                         time.sleep(1./self.rate)
-
+                                        
                         self.reader = multiprocessing.Process(target = process)
                         self.reader.start()
 
         def detect_key(self):
-                for key_name, key in KEYS.iteritems():
+                for key_name, key in KEYS.items():
                         self.rijn = rijndael(key, 16)
                         successive = []
                         
@@ -153,15 +191,15 @@ class Emotiv(object):
                         filter = hid.HidDeviceFilter(vendor_id=0x21A1, product_name='Brain Waves')
                         devices = filter.get_devices()
 
-                        self.device = devices[0]
-                        self.device.open()
+                        self._device = devices[0]
+                        self._device.open()
                         
                         def handle(data):
                                 data = ''.join(map(chr, data[1:]))
                                 decrypted = self.rijn.decrypt(data[:16]) + self.rijn.decrypt(data[16:])
                                 self._packets.put(decrypted)
 
-                        self.device.set_raw_data_handler(handle)
+                        self._device.set_raw_data_handler(handle)
 
                 except IndexError:
                         raise DeviceNotFound, "Device was not found."
@@ -171,21 +209,21 @@ class Emotiv(object):
 	def setup_posix(self):
                 if os.path.exists('/dev/eeg/raw'):
                         self._decrypted = True
-                        self.device = open('/dev/eeg/raw')
+                        self._device = open('/dev/eeg/raw')
                 else:
                         self._decrypted = False
 
                         if os.path.exists("/dev/hidraw2"):  
-                                self.device = open("/dev/hidraw2")
+                                self._device = open("/dev/hidraw2")
                         elif os.path.exists('/dev/hidraw1'):
-                                self.device = open("/dev/hidraw1")
+                                self._device = open("/dev/hidraw1")
                         else:
                                 raise DeviceNotFound, "Device was not found."
 
         def read_posix(self):
                 try:
                         with timeout(1):
-                                data = self.device.read(32)
+                                data = self._device.read(32)
                 except IOError:
                         raise DeviceOff, "Your dongle is there, now turn your device on!"
 
@@ -194,8 +232,15 @@ class Emotiv(object):
 
                 return EmotivPacket(data)
 
-        def read(self):
-                return self.read_posix()
+        def read(self, seconds = -1.):
+                if seconds == -1:
+                        return self.collect()
+                else:
+                        samples = []
+                        n = seconds * self.rate
+                        for i in range(n):
+                                samples.append(self.collect())
+                                time.sleep(1./self.rate)
 
 	def dequeue(self):
                 while True:
@@ -203,7 +248,7 @@ class Emotiv(object):
                         
 	def close(self):
 		if windows:
-			self.device.close()
+			self._device.close()
 		else:
                         if not self._on_demand:
                                 self.reader.terminate()
