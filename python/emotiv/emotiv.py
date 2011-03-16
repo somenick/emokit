@@ -100,25 +100,29 @@ class EmotivPacket(object):
 			)
 
 class Emotiv(object):
-        def __init__(self, rate = 128):
+        def __init__(self, on_demand = True, rate = 128):
                 self._packets = multiprocessing.Queue()
 		
                 if 0 < rate <= MAX_RATE:
                         self.rate = rate
                 else:
-                        raise Exception, "Maximum sampling rate is 128Hz"
+                        raise Exception, "Maximum sampling rate is %i Hz." % (MAX_RATE)
 
                 self.setup_win() if windows else self.setup_posix()
 
                 self.detect_key()
 
-                def process():
-                        while True:
-                                packet = self.read_posix()
-                                self._packets.put(packet)
+                self._on_demand = on_demand
 
-                self.reader = multiprocessing.Process(target = process)
-                self.reader.start()
+                if not self._on_demand:
+                        def process():
+                                while True:
+                                        packet = self.read_posix()
+                                        self._packets.put(packet)
+                                        time.sleep(1./self.rate)
+
+                        self.reader = multiprocessing.Process(target = process)
+                        self.reader.start()
 
         def detect_key(self):
                 for key_name, key in KEYS.iteritems():
@@ -153,7 +157,7 @@ class Emotiv(object):
                         self.device.open()
                         
                         def handle(data):
-                                data = ''.join(map(chr, data[1:])))
+                                data = ''.join(map(chr, data[1:]))
                                 decrypted = self.rijn.decrypt(data[:16]) + self.rijn.decrypt(data[16:])
                                 self._packets.put(decrypted)
 
@@ -190,16 +194,19 @@ class Emotiv(object):
 
                 return EmotivPacket(data)
 
+        def read(self):
+                return self.read_posix()
 
 	def dequeue(self):
-		while True:
+                while True:
                         yield self._packets.get()
                         
 	def close(self):
 		if windows:
 			self.device.close()
 		else:
-			self.reader.terminate()
+                        if not self._on_demand:
+                                self.reader.terminate()
 			self.hidraw.close()
 
         def __del__(self):
