@@ -78,7 +78,7 @@ def timeout(seconds):
 
 class EmotivPacket(object):
         def __init__(self, data):
-        self.counter = ord(data[0])
+                self.counter = ord(data[0])
 		self.sync = self.counter == 0xe9
 		self.gyroX = ord(data[29]) - 102
 		self.gyroY = ord(data[30]) - 104
