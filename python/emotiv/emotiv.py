@@ -77,8 +77,8 @@ def timeout(seconds):
         signal.signal(signal.SIGALRM, original_handler)
 
 class EmotivPacket(object):
-	def __init__(self, data):
-		self.counter = ord(data[0])
+        def __init__(self, data):
+        self.counter = ord(data[0])
 		self.sync = self.counter == 0xe9
 		self.gyroX = ord(data[29]) - 102
 		self.gyroY = ord(data[30]) - 104
@@ -100,7 +100,7 @@ class EmotivPacket(object):
 			)
 
 class Emotiv(object):
-	def __init__(self, rate = 128):
+        def __init__(self, rate = 128):
                 self._packets = multiprocessing.Queue()
 		
                 if 0 < rate <= MAX_RATE:
@@ -108,7 +108,7 @@ class Emotiv(object):
                 else:
                         raise Exception, "Maximum sampling rate is 128Hz"
 
-		self.setup_win() if windows else self.setup_posix()
+                self.setup_win() if windows else self.setup_posix()
 
                 self.detect_key()
 
@@ -171,9 +171,9 @@ class Emotiv(object):
                         self._decrypted = False
 
                         if os.path.exists("/dev/hidraw2"):  
-					self.device = open("/dev/hidraw2")
+                                self.device = open("/dev/hidraw2")
                         elif os.path.exists('/dev/hidraw1'):
-					self.device = open("/dev/hidraw1")
+                                self.device = open("/dev/hidraw1")
                         else:
                                 raise DeviceNotFound, "Device was not found."
 
