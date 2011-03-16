@@ -5,14 +5,12 @@ import emotiv
 
 from PyQt4.QtGui import QWidget, QApplication, QVBoxLayout, QPainter, QColor
 
-# taken from wikipedia
-
 rhythms = {
     'delta': (0, 4),
     'theta': (4, 8),
     'alpha': (8, 13),
     'beta': (13, 30),
-    'gamma': (30, 100),
+    'gamma': (30, 45),
     'mu': (8, 13)
     }
 
@@ -59,8 +57,8 @@ class Viewer(QWidget):
     def start(self):
         while True:
             data = self.read()
-            data = data-4000
-            freq_data = map(lambda x: abs(float(x)), numpy.fft.fft(data)[:len(data)/2])
+            data -= 4000
+            freq_data = map(abs, numpy.fft.fft(data)[:len(data)/2])
 
             for rhythm, (a,b) in rhythms.items():
                 self.strengths[rhythm] = sum(freq_data[a:b])
