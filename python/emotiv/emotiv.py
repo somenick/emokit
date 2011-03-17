@@ -114,6 +114,10 @@ class EmotivPacket(object):
 				self.gyroY, 
 			)
 
+        def tostring(self):
+                return ("%d "*3) % (self.counter, self.gyroX, self.gyroY) + \
+                       ("%d "*14) % tuple(map(lambda x: getattr(self, x)[0], sensorlist))
+
 class Emotiv(object):
         def __init__(self, simulation = '', key = consumer_key):
                 self._simulation = True if simulation else False

@@ -1,6 +1,5 @@
 import math
 import numpy
-import sys
 import emotiv
 
 from PyQt4.QtGui import QWidget, QApplication, QVBoxLayout, QPainter, QColor
@@ -56,9 +55,8 @@ class Viewer(QWidget):
         
     def start(self):
         while True:
-            data = self.read()
-            data -= 4000
-            freq_data = map(abs, numpy.fft.fft(data)[:len(data)/2])
+            data = self.read() - 4000
+            freq_data = numpy.abs(numpy.fft.fft(data)[:len(data)/2])
 
             for rhythm, (a,b) in rhythms.items():
                 self.strengths[rhythm] = sum(freq_data[a:b])
@@ -80,5 +78,4 @@ if __name__ == '__main__':
     viewer.show()
     viewer.start()
     app.exec_()
-            
 
