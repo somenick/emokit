@@ -227,7 +227,7 @@ class Emotiv(object):
 
         def _read_posix(self):
                 try:
-                        with timeout(1):
+                        with timeout(2):
                                 data = self._device.read(32)
                 except IOError:
                         raise DeviceOff, "Your dongle is there, now turn your device on!"
