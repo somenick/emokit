@@ -16,14 +16,14 @@ rhythms = {
 class RhythmWidget(QWidget):
     def __init__(self, loc):
         QWidget.__init__(self)
-        self.loc = loc
+        self.rhythm = rhythm
         self.strength = 0
         self.resize(500, 100)
         self.repaint()
     
     def paintEvent(self, evt):
         painter = QPainter(self)
-        painter.drawText(10, 50, self.loc)
+        painter.drawText(10, 50, self.rhythm)
         painter.fillRect(100, 0, self.strength, 100, QColor(0,100,0))
         
     def update(self, v):

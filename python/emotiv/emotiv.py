@@ -1,3 +1,4 @@
+import itertools
 import multiprocessing
 try:
 	import pywinusb.hid as hid
@@ -132,13 +133,13 @@ class Emotiv(object):
 
                         labels = ['counter', 'gyroX', 'gyroY'] + sensorlist
 
-                        self._simulation_data = []
-                        for line in relevant_lines:
+                        def to_packet(line):
                                 packet_dict = dict(zip(labels, map(int, line.split(' ')[:-1])))
-                                packet = EmotivPacket(as_dict = packet_dict)
-                                self._simulation_data.append(packet)
+                                return EmotivPacket(as_dict = packet_dict)
 
-                        self._collect = self._simulation_data.pop
+                        self._generator = itertools.cycle(map(to_packet, relevant_lines))
+                        
+                        self._collect = self._generator.next
 
                 else:
                         self._setup_win() if windows else self._setup_posix()
