@@ -98,7 +98,7 @@ class Emotiv(object):
 				if os.path.exists("/dev/hidraw2"):
 					self.hidraw = open("/dev/hidraw2")
 				else:
-					self.hidraw = open("/dev/hidraw2")
+					self.hidraw = open("/dev/hidraw1")
 			
 			while self._goOn:
 				data = self.hidraw.read(32)
