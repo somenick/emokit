@@ -51,14 +51,28 @@ See epocd.c example
 Python library
 --------------
 
-  import emotiv
-  headset = emotiv.Emotiv()
-  try:
-    while True:
-      for packet in headset.dequeue():
-        print packet.gyroX, packet.gyroY
-  finally:
-    headset.close()
+    import emotiv
+    headset = emotiv.Emotiv()
+    try:
+        while True:
+            for packet in headset.dequeue():
+            print packet.gyroX, packet.gyroY
+    finally:
+        headset.close()
+
+
+Tips for aspiring neurohackers
+==========================
+
+1) Label each sensor on your headset! If some sensor is acting crazy, you'll know which one it is right away. 
+
+2) The <code>samples/</code> folder contains recorded segments of the headset's
+  output, so you can develop and test applications that make use of
+  the raw EEG without actually wearing (or owning) the headset. You
+  can use the data like this:
+
+    import emotiv
+    headset = emotiv.Emotiv(simulation = 'samples/generic')
 
 Platform Specifics
 ==================
@@ -97,3 +111,4 @@ Credits - Kyle
 
 Kyle would like to thank Cody for doing the hard part.
 He would also like to thank emotiv for putting emo on the front of everything because it's god damn hilarious. I mean, really, Emo Suites? Saddest hotel EVER.
+
