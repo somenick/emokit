@@ -16,7 +16,7 @@ rhythms = {
 class RhythmWidget(QWidget):
     def __init__(self, loc):
         QWidget.__init__(self)
-        self.rhythm = rhythm
+        self.rhythm = loc
         self.strength = 0
         self.resize(500, 100)
         self.repaint()
@@ -67,6 +67,7 @@ sensors = "AF3,F7,F3,FC5,T7,P7,O1,O2,P8,T8,FC6,F4,F8,AF4"
 
 if __name__ == '__main__':
     try:
+        import sys
         loc = sys.argv[1]
         assert loc in sensors.split(',')
     except:
