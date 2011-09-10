@@ -238,10 +238,13 @@ class Emotiv(object):
                 return EmotivPacket(data)
 
         # on demand collector (recommended)
-        def read(self, seconds = -1., rate = 128):
+        def read(self, seconds = -1., rate = 128, no_wait=False):
                 if seconds == -1:
                         self._conn.send('')
-                        return self._conn.recv()
+                        if not no_wait or  self._conn.poll():
+                                return self._conn.recv()
+                        else:
+                                return None
                 else:
                         samples = []
                         n = seconds * rate
